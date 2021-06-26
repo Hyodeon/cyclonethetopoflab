@@ -1,0 +1,104 @@
+#define pumpPower 75
+#define potWTP A3
+
+#define pot A1
+
+#define WATER_PUMP_PWM 3
+#define WATER_PUMP_INPUT1 5
+#define WATER_PUMP_INPUT2 6 // 모터 pwm핀
+
+#define LED_PWM 9
+#define LED_INPUT3 10
+#define LED_INPUT4 11
+
+int inputNum = 0;
+int CinputNum = 0;
+
+int PUMP_DELAY = 0;
+
+unsigned long time_;
+int PUMP_DELAY_THRESHOLD;
+bool MOTOR_TURN_ON = true;
+
+//  pre declaration ===============================================================
+
+void setup() {
+  
+  // 각각의 pinMode 설정하는 부분 INPUT과 OUTPUT,,
+  pinMode(pot, INPUT);
+  
+  pinMode(WATER_PUMP_PWM, OUTPUT);
+  pinMode(WATER_PUMP_INPUT1, OUTPUT);
+  pinMode(WATER_PUMP_INPUT2, OUTPUT);
+  
+  pinMode(LED_PWM, OUTPUT);
+  pinMode(LED_INPUT3, OUTPUT);
+  pinMode(LED_INPUT4, OUTPUT);
+  
+  pinMode(potWTP, INPUT);
+  
+  pinMode(LED_PWM, OUTPUT);
+  digitalWrite(LED_PWM, HIGH);
+
+  digitalWrite(WATER_PUMP_INPUT1, HIGH);
+  digitalWrite(WATER_PUMP_INPUT2, LOW);
+  digitalWrite(LED_INPUT3, HIGH);
+  digitalWrite(LED_INPUT4, HIGH);
+  analogWrite(WATER_PUMP_PWM, pumpPower);
+
+  // 값 확인하는 serial 모니터 시작 설정
+  Serial.begin(9600);
+
+}
+
+//  main LOOP context ===============================================================
+
+void loop() {
+
+  time_ = millis();  // 밀리세컨드 단위로 값을 가져옴 -> 이따가 켜지고 꺼지는 조건에 사용
+  PUMP_DELAY += 1;
+
+  // PUMP_DELAY_THRESHOLD = analogRead(potWTP) / 2;
+  PUMP_DELAY_THRESHOLD = 0;
+
+  digitalWrite(LED_PWM, HIGH);
+
+  if (Serial.available()) {
+    inputNum = Serial.read() - '0';
+    inputNum = CinputNum + (inputNum-5);
+    Serial.println(inputNum);
+    CinputNum= inputNum;
+  }
+
+  inputNum = 40;
+
+  if (time_ % inputNum == 0)
+  {
+    digitalWrite(LED_INPUT3, LOW);
+  }
+  else
+  {
+    digitalWrite(LED_INPUT3, HIGH);
+  }
+
+
+  if (PUMP_DELAY >= PUMP_DELAY_THRESHOLD)
+  {
+    if (MOTOR_TURN_ON)
+    {
+      analogWrite(WATER_PUMP_PWM, pumpPower);
+      MOTOR_TURN_ON = false;
+    }
+    else
+    {
+      MOTOR_TURN_ON = true;
+    }
+
+    PUMP_DELAY = 0;
+  }
+
+
+  //Serial.println(anl);
+  //Serial.println(analogRead(potWTP));
+
+}
